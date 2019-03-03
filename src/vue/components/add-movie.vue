@@ -48,6 +48,11 @@
                     v-model="movieToAdd.note"
                     :rules="noteValidation"
                 ></v-text-field>
+                <div>
+                    Poster du film :
+                    <input name="file" type="file" id="file" ref="file" v-on:change="uploadFile()"/>
+                    <p><i id="fileName"></i></p>
+                </div>
 
                 <v-text-field
                     name="synopsis"
@@ -87,6 +92,8 @@
                 'Boxe'
             ],
 
+            file: '',
+
             movieToAdd : {
                 title: '',
                 year: '',
@@ -98,8 +105,7 @@
                     birthDate: '',
                     nationality: ''
                 },
-                synopsis: '',
-                poster: ''
+                synopsis: ''
             },
 
             birthValidation: [
@@ -121,6 +127,10 @@
 
         methods: {
             submit() {
+
+                let formData = new FormData()
+                formData.append('file', this.file)
+                
                 if (this.$refs.form.validate()) {
 
                     const movie = {
@@ -129,7 +139,7 @@
                         genre: this.movieToAdd.genre,
                         note: this.movieToAdd.note,
                         synopsis: this.movieToAdd.synopsis,
-                        poster: this.movieToAdd.poster ? this.movieToAdd.poster : '/../../static/poster/no_poster.jpg'
+                        poster: this.file ? this.file : '/../../static/poster/no_poster.jpg'
                     }
 
                     movie.director = {
@@ -140,14 +150,21 @@
 
                     this.$store.dispatch('addNewMovie', movie)
                         .then( (res) => {
-                            console.log('réponse', res)
-                            this.$router.push({ path: `/movie/${res.id}`, params: { id: res.id } })
+                            formData.append('movieId', res.id)
+                            this.$store.dispatch('uploadPosterMovie', formData)
+                                .then( () => {
+                                    this.$router.push({ path: `/movie/${res.id}`, params: { id: res.id } })
+                                })
                         }
                     )
                 }
             },
             backToHome : function() {
 				this.$router.push({ path: `/` })
+            },
+            uploadFile(){
+                this.file = this.$refs.file.files[0];
+                let fileName = this.file ? this.file.name : ""
             }
         }
     }

@@ -3,11 +3,18 @@ const path = require('path')
 const router = express()
 const data = require('../data/data')
 
+const multer = require('multer')
+const cors = require('cors')
+const upload = multer({ dest: './src/static/poster/' })
+const fs = require("fs")
+
 router.use(express.json())
 
 router.use('/static', express.static(path.join(__dirname + '/../static')))
 
 const movies = data.movies 
+
+const type = upload.single('file')
 
 router.get('/src/dist/build.js', (req, res) => {
     res.sendFile(path.join(__dirname + '/../dist/build.js'))
@@ -72,6 +79,37 @@ router.put('/movies', (req, res) => {
     movies.push(movie)
     res.status(200)
     res.json(movie)
+})
+
+router.post('/movies/upload', type, (req, res) => {
+    if (!req.file) {
+        return res.send({
+            success: false
+        })
+    } 
+    else {
+        const extension = req.file.originalname.split(".").reverse()[0]
+        const filename = req.file.originalname.split(".")[0] + "_" + req.body.movieId + "." + extension
+        const newPath = req.file.destination + filename
+
+        let index = movies.findIndex(m => m.id == req.body.movieId)
+        if(index !== -1) {
+            movies[index].poster = "/../../static/poster/" + filename
+            fs.rename(req.file.path, newPath,
+                err => {
+                    if (err) {
+                        throw (err)
+                    }
+                }
+            )
+            res.status(200)
+            res.json(movies)
+        }
+        else {
+            res.status(404)
+            res.json({error: "resource not found"})
+        }
+    }
 })
 
 module.exports = router

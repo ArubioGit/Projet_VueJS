@@ -37,6 +37,15 @@ const store = new Vuex.Store({
                     return m = movie
                 }
             })
+        },
+        uploadPoster: (state, formData) =>{
+            let index = state.movies.findIndex(m => m.id == formData.get("movieId"))
+            if(index !== -1 && formData.get("file")) {
+                let movie = state.movies[index]
+                let extension = formData.get("file").name.split(".").reverse()[0]
+                let filename = formData.get("file").name.split(".")[0] + "_" + movie.id + "." + extension
+                movie.poster = "/../../static/poster/" + filename
+            }
         }
     },
 
@@ -86,8 +95,19 @@ const store = new Vuex.Store({
             return new Promise((resolve, reject) => {
                 axios.put(`/movies/edit`, params)
                     .then((response) => {
-                        console.log('route success', response)
                         context.commit('updateMovie', response.data)
+                        resolve()
+                    })
+                    .catch(() => {
+                        reject()
+                    })
+            })
+        },
+        uploadPosterMovie(context, formData) {
+            return new Promise((resolve, reject) => {
+                axios.post( `/movies/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+                    .then((response) => {
+                        context.commit('uploadPoster', formData)
                         resolve()
                     })
                     .catch(() => {
