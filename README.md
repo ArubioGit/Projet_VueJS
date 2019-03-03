@@ -1,5 +1,7 @@
 # Projet_VueJS
 
+## ANTHONY RUBIO DAWIN ALT - anthony.rubio@etu.u-bordeaux.fr
+
 ## Lancer le projet
 
 Se placer à la racine du projet et éxécuter la commande suivante :
